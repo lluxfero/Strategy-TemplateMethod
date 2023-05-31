@@ -1,101 +1,139 @@
 ﻿// Клиентский код.
-Component1 component1 = new Component1();
-Component2 component2 = new Component2();
-new ConcreteMediator(component1, component2);
+Light light = new();
+Music music = new();
+Discoshar disco = new();
+SmartSpeakerAlice alice = new(light, music, disco);
 
-Console.WriteLine("Client triggers operation A.");
-component1.DoA();
-
+light.TurnOff();
 Console.WriteLine();
+music.TurnOff();
+Console.WriteLine();
+light.TurnOn();
 
-Console.WriteLine("Client triggers operation D.");
-component2.DoD();
+
+//*Свет выключился
+//Реакция на выключение света:
+//*Поп - музыка включилась
+//* Дискошар включился
+
+//*Музыка выключилась
+//Реакция на выключение музыки:
+//*Дискошар выключился
+
+//* Свет включился
+//Реакция на включение света:
+//*Классическая музыка включилась
 
 
 // Интерфейс Посредника
-public interface IMediator
+public interface ISmartHome
 {
     void Notify(object sender, string ev);
 }
 
 // Конкретные Посредники
-class ConcreteMediator : IMediator
+class SmartSpeakerAlice : ISmartHome
 {
-    private Component1 _component1;
+    private Light _light;
+    private Music _music;
+    private Discoshar _disco;
 
-    private Component2 _component2;
-
-    public ConcreteMediator(Component1 component1, Component2 component2)
+    public SmartSpeakerAlice(Light b, Music s, Discoshar d)
     {
-        this._component1 = component1;
-        this._component1.SetMediator(this);
-        this._component2 = component2;
-        this._component2.SetMediator(this);
+        this._light = b;
+        this._light.SetMediator(this);
+        this._music = s;
+        this._music.SetMediator(this);
+        this._disco = d;
+        this._disco.SetMediator(this);
     }
 
-    public void Notify(object sender, string ev)
+    public void Notify(object sender, string myEvent)
     {
-        if (ev == "A")
+        if (myEvent == "LightOff")
         {
-            Console.WriteLine("Mediator reacts on A and triggers folowing operations:");
-            this._component2.DoC();
+            Console.WriteLine("Реакция на выключение света:");
+            this._music.TurnOnPop();
+            this._disco.TurnOn();
         }
-        if (ev == "D")
+        if (myEvent == "MusicOff")
         {
-            Console.WriteLine("Mediator reacts on D and triggers following operations:");
-            this._component1.DoB();
-            this._component2.DoC();
+            Console.WriteLine("Реакция на выключение музыки:");
+            this._disco.TurnOff();
+        }
+        if (myEvent == "LightOn")
+        {
+            Console.WriteLine("Реакция на включение света: ");
+            this._music.TurnOnClassical();
         }
     }
 }
 
 // Базовый Компонент обеспечивает базовую функциональность
-class BaseComponent
+class SmartHomeComponent
 {
-    protected IMediator _mediator;
+    protected ISmartHome _mediator;
 
-    public BaseComponent(IMediator mediator = null)
+    public SmartHomeComponent(ISmartHome mediator = null)
     {
         this._mediator = mediator;
     }
 
-    public void SetMediator(IMediator mediator)
+    public void SetMediator(ISmartHome mediator)
     {
         this._mediator = mediator;
     }
 }
 
 // Конкретные Компоненты реализуют различную функциональность
-class Component1 : BaseComponent
+class Light : SmartHomeComponent
 {
-    public void DoA()
+    public void TurnOn()
     {
-        Console.WriteLine("Component 1 does A.");
-
-        this._mediator.Notify(this, "A");
+        Console.WriteLine("*Свет включился");
+        this._mediator.Notify(this, "LightOn");
     }
 
-    public void DoB()
+    public void TurnOff()
     {
-        Console.WriteLine("Component 1 does B.");
-
-        this._mediator.Notify(this, "B");
+        Console.WriteLine("*Свет выключился");
+        this._mediator.Notify(this, "LightOff");
     }
 }
 
-class Component2 : BaseComponent
+class Music : SmartHomeComponent
 {
-    public void DoC()
+    public void TurnOnPop()
     {
-        Console.WriteLine("Component 2 does C.");
-
-        this._mediator.Notify(this, "C");
+        Console.WriteLine("*Поп-музыка включилась");
+        this._mediator.Notify(this, "MusicOn");
+    }
+    public void TurnOnClassical()
+    {
+        Console.WriteLine("*Классическая музыка включилась");
+        this._mediator.Notify(this, "MusicOn");
     }
 
-    public void DoD()
+    public void TurnOff()
     {
-        Console.WriteLine("Component 2 does D.");
+        Console.WriteLine("*Музыка выключилась");
 
-        this._mediator.Notify(this, "D");
+        this._mediator.Notify(this, "MusicOff");
+    }
+}
+
+class Discoshar : SmartHomeComponent
+{
+    public void TurnOn()
+    {
+        Console.WriteLine("*Дискошар включился");
+        this._mediator.Notify(this, "DiscosharOn");
+    }
+
+    public void TurnOff()
+    {
+        Console.WriteLine("*Дискошар выключился");
+
+        this._mediator.Notify(this, "DiscosharOff");
     }
 }
